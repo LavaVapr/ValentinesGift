@@ -20,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-image: url('https://i.imgur.com/c1ERMrv.jpg');
+            background-image: url('./background.png');
             background-size: cover;
             background-position: 5% center;
             background-repeat: no-repeat;
@@ -128,6 +128,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-yes {
@@ -136,9 +137,8 @@
             transform: scale(1);
         }
 
-        .btn-yes:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 22, 84, 0.4);
+        .btn-yes:active {
+            transform: scale(0.95);
         }
 
         .btn-no {
@@ -147,8 +147,8 @@
             transform: scale(1);
         }
 
-        .btn-no:hover {
-            background: linear-gradient(135deg, #757575, #616161);
+        .btn-no:active {
+            transform: scale(0.95);
         }
 
         .media-container {
@@ -178,7 +178,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('https://i.imgur.com/c1ERMrv.jpg');
+            background-image: url('./background.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -218,11 +218,11 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .ok-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(255, 22, 84, 0.4);
+        .ok-btn:active {
+            transform: scale(0.95);
         }
 
         /* Audio Player Styles */
@@ -261,10 +261,11 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .audio-player button:hover {
-            transform: scale(1.1);
+        .audio-player button:active {
+            transform: scale(0.9);
         }
 
         .audio-player button.play-btn {
@@ -275,6 +276,19 @@
 
         .audio-player input[type="range"] {
             flex: 1;
+            cursor: pointer;
+            -webkit-appearance: none;
+            height: 4px;
+            border-radius: 2px;
+            background: #ddd;
+        }
+
+        .audio-player input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff1654;
             cursor: pointer;
         }
 
@@ -296,13 +310,28 @@
             color: #666;
             margin-top: 5px;
         }
+
+        /* Hide volume control on iOS */
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            /* iOS specific - hide volume control */
+            .volume-control {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-text">I couldn't figure out how to make the audio start automatically so.. :')</div>
+            <div class="loading-text">Tap OK to start the music! 🎵</div>
             <button class="ok-btn" onclick="dismissLoading()">OK</button>
         </div>
     </div>
@@ -334,13 +363,13 @@
             <button onclick="prevTrack()">⏮</button>
             <button class="play-btn" onclick="togglePlay()" id="playBtn">▶</button>
             <button onclick="nextTrack()">⏭</button>
-            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+            <div class="volume-control">
                 <span style="font-size: 1rem;">🔊</span>
-                <input type="range" min="0" max="10" value="5" id="volume" oninput="changeVolume()" style="flex: 1;">
+                <input type="range" min="0" max="100" value="50" id="volume" oninput="changeVolume()">
             </div>
         </div>
         <div style="margin-top: 10px;">
-            <input type="range" min="0" max="100" value="0" id="progress" oninput="updateProgress()" onmousedown="startDragging()" onmouseup="seekTo()" ontouchstart="startDragging()" ontouchend="seekTo()" style="width: 100%;">
+            <input type="range" min="0" max="100" value="0" id="progress" oninput="updateProgress()" style="width: 100%;">
         </div>
         <div class="audio-time">
             <span id="currentTime">0:00</span>
@@ -348,11 +377,10 @@
         </div>
     </div>
 
-    <audio id="audioElement"></audio>
+    <audio id="audioElement" preload="auto"></audio>
 
     <script>
         // ====== CUSTOMIZE YOUR "NO" BUTTON RESPONSES HERE ======
-        // Add as many responses as you want! The button will shrink and change text each time.
         const noResponses = [
             "Are you sure?",
             "Really?",
@@ -396,22 +424,19 @@
         setInterval(createHeart, 800);
 
         // No button click handler
-        noBtn.addEventListener('click', function() {
+        noBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             if (noClickCount < noResponses.length) {
-                // Change text
                 noBtn.textContent = noResponses[noClickCount];
                 
-                // Shrink no button
                 const newNoScale = 1 - (noClickCount + 1) * 0.1;
                 noBtn.style.transform = `scale(${Math.max(newNoScale, 0.3)})`;
                 
-                // Grow yes button
                 const newYesScale = 1 + (noClickCount + 1) * 0.15;
                 yesBtn.style.transform = `scale(${newYesScale})`;
                 
                 noClickCount++;
                 
-                // If this was the last response, hide the No button completely
                 if (noClickCount >= noResponses.length) {
                     noBtn.style.display = 'none';
                 }
@@ -419,27 +444,14 @@
         });
 
         // Yes button click handler
-        yesBtn.addEventListener('click', function() {
+        yesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             questionScreen.style.display = 'none';
             answerScreen.style.display = 'block';
-            audioPlayerDiv.style.display = 'none'; // Hide audio player
+            audioPlayerDiv.style.display = 'none';
             
             // Fade out audio
-            const fadeOutDuration = 1000; // 1 second fade
-            const fadeSteps = 20;
-            const stepTime = fadeOutDuration / fadeSteps;
-            const volumeStep = audioPlayer.volume / fadeSteps;
-            
-            const fadeInterval = setInterval(() => {
-                if (audioPlayer.volume > volumeStep) {
-                    audioPlayer.volume -= volumeStep;
-                } else {
-                    audioPlayer.volume = 0;
-                    audioPlayer.pause();
-                    playBtn.textContent = '▶'; // Reset play button
-                    clearInterval(fadeInterval);
-                }
-            }, stepTime);
+            fadeOutAudio();
             
             // Set the video
             const mediaContainer = document.getElementById('mediaContainer');
@@ -462,51 +474,63 @@
         const durationDisplay = document.getElementById('duration');
         const audioPlayerDiv = document.getElementById('audioPlayer');
 
-        // Audio tracks from uploaded files
+        // Audio tracks - FIXED: Added ./ prefix for relative paths
         const tracks = [
-            { name: "Krystal", url: "Krystal.mp3" },
-            { name: "When My Life Is Over", url: "WhenMyLifeIsOver.mp3" },
-            { name: "The Marías - Nobody New", url: "TheMariasNobodyNew.mp3" },
-            { name: "Everyone Adores You (at least I do)", url: "EveryoneAdoresYouatleastIdo.mp3" },
-            { name: "Matt Maltese - As the World Caves In", url: "MattMalteseAstheWorldCavesInOfficial.mp3" },
-            { name: "The Ronettes - Be My Baby", url: "TheRonettesBeMyBabyOfficialAudio.mp3" },
-            { name: "What More Can I Say", url: "WhatMoreCanISay.mp3" },
-            { name: "The Marías - No One Noticed", url: "TheMariasNoOneNoticed.mp3" },
-            { name: "Last Night on Earth - Green Day", url: "SubThaiLastNightonEarthGreenDay.mp3" },
-            { name: "Come Back! Buddha REMASTERED", url: "ComeBackBuddhaREMASTERED.mp3" },
-            { name: "She & Him - I Thought I Saw Your Face Today", url: "SheAndHimIThoughtISawYourFaceToday.mp3" }
+            { name: "Krystal", url: "./Krystal.mp3" },
+            { name: "When My Life Is Over", url: "./WhenMyLifeIsOver.mp3" },
+            { name: "The Marías - Nobody New", url: "./TheMariasNobodyNew.mp3" },
+            { name: "Everyone Adores You (at least I do)", url: "./EveryoneAdoresYouatleastIdo.mp3" },
+            { name: "Matt Maltese - As the World Caves In", url: "./MattMalteseAstheWorldCavesInOfficial.mp3" },
+            { name: "The Ronettes - Be My Baby", url: "./TheRonettesBeMyBabyOfficialAudio.mp3" },
+            { name: "What More Can I Say", url: "./WhatMoreCanISay.mp3" },
+            { name: "The Marías - No One Noticed", url: "./TheMariasNoOneNoticed.mp3" },
+            { name: "Last Night on Earth - Green Day", url: "./SubThaiLastNightonEarthGreenDay.mp3" },
+            { name: "Come Back! Buddha REMASTERED", url: "./ComeBackBuddhaREMASTERED.mp3" },
+            { name: "She & Him - I Thought I Saw Your Face Today", url: "./SheAndHimIThoughtISawYourFaceToday.mp3" }
         ];
 
         let currentTrack = 0;
+        let userHasInteracted = false;
 
         // Load first track
         function loadTrack(index) {
-            console.log('Loading track:', tracks[index].name, 'from:', tracks[index].url);
+            console.log('Loading track:', tracks[index].name);
             const wasPlaying = !audioPlayer.paused;
             audioPlayer.src = tracks[index].url;
-            audioPlayer.load(); // Important: force reload the audio
             trackInfo.textContent = tracks[index].name;
             currentTrack = index;
             
-            // If it was playing before, continue playing after load
-            if (wasPlaying) {
-                audioPlayer.play().catch(err => console.log('Play error:', err));
+            // Only autoplay if user has interacted
+            if (wasPlaying && userHasInteracted) {
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.log('Autoplay prevented:', err);
+                        playBtn.textContent = '▶';
+                    });
+                }
             }
         }
 
-        // Add error event listener
+        // Error handling
         audioPlayer.addEventListener('error', function(e) {
-            console.error('Audio error:', e);
-            console.error('Error code:', audioPlayer.error?.code);
-            console.error('Error message:', audioPlayer.error?.message);
-            console.error('Current src:', audioPlayer.src);
+            console.error('Audio error:', audioPlayer.error);
+            alert('Could not load audio file: ' + tracks[currentTrack].name + '\nPlease check that the file exists.');
         });
 
         // Toggle play/pause
         function togglePlay() {
+            userHasInteracted = true;
             if (audioPlayer.paused) {
-                audioPlayer.play().catch(err => console.log('Play error:', err));
-                playBtn.textContent = '⏸';
+                const playPromise = audioPlayer.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        playBtn.textContent = '⏸';
+                    }).catch(err => {
+                        console.log('Play failed:', err);
+                        alert('Could not play audio. Please check that the file exists.');
+                    });
+                }
             } else {
                 audioPlayer.pause();
                 playBtn.textContent = '▶';
@@ -515,58 +539,68 @@
 
         // Next track
         function nextTrack() {
+            userHasInteracted = true;
             currentTrack = (currentTrack + 1) % tracks.length;
             loadTrack(currentTrack);
-            audioPlayer.play().catch(err => console.log('Play error:', err));
-            playBtn.textContent = '⏸';
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    playBtn.textContent = '⏸';
+                }).catch(err => console.log('Play error:', err));
+            }
         }
 
         // Previous track
         function prevTrack() {
+            userHasInteracted = true;
             currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
             loadTrack(currentTrack);
-            audioPlayer.play().catch(err => console.log('Play error:', err));
-            playBtn.textContent = '⏸';
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    playBtn.textContent = '⏸';
+                }).catch(err => console.log('Play error:', err));
+            }
         }
 
         // Update progress bar
+        let isDragging = false;
+
         audioPlayer.addEventListener('timeupdate', function() {
-            // Only update progress bar if user is not dragging
-            if (!isDragging) {
+            if (!isDragging && audioPlayer.duration) {
                 const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progress.value = percent || 0;
             }
             
-            // Update time displays
             currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
             durationDisplay.textContent = formatTime(audioPlayer.duration);
         });
 
-        // Seek to position
-        let isDragging = false;
-        
-        function startDragging() {
+        // Progress bar interaction - simplified for mobile
+        progress.addEventListener('input', function() {
             isDragging = true;
-        }
-        
-        function updateProgress() {
-            // Only update visually while dragging, don't change audio position
-            if (isDragging) {
-                // Just let the slider move, don't seek yet
-            }
-        }
-        
-        function seekTo() {
-            // Only actually seek when user releases the slider
-            isDragging = false;
+        });
+
+        progress.addEventListener('change', function() {
             const time = (progress.value / 100) * audioPlayer.duration;
             audioPlayer.currentTime = time;
+            isDragging = false;
+        });
+
+        // For touch devices
+        progress.addEventListener('touchend', function() {
+            const time = (progress.value / 100) * audioPlayer.duration;
+            audioPlayer.currentTime = time;
+            isDragging = false;
+        });
+
+        function updateProgress() {
+            // Visual update only
         }
 
-        // Change volume
+        // Change volume - Note: This won't work on iOS
         function changeVolume() {
-            audioPlayer.volume = volumeSlider.value / 100; // Divide by 100 so max of 10 = 0.1 (10%)
-            console.log('Volume set to:', audioPlayer.volume);
+            audioPlayer.volume = volumeSlider.value / 100;
         }
 
         // Format time
@@ -580,32 +614,62 @@
         // Auto-play next track when current ends
         audioPlayer.addEventListener('ended', nextTrack);
 
-        // Load first track on page load
-        loadTrack(0);
-        audioPlayer.volume = 0.05;
+        // Fade out audio
+        function fadeOutAudio() {
+            const fadeOutDuration = 1000;
+            const fadeSteps = 20;
+            const stepTime = fadeOutDuration / fadeSteps;
+            const startVolume = audioPlayer.volume;
+            const volumeStep = startVolume / fadeSteps;
+            
+            const fadeInterval = setInterval(() => {
+                if (audioPlayer.volume > volumeStep) {
+                    audioPlayer.volume = Math.max(0, audioPlayer.volume - volumeStep);
+                } else {
+                    audioPlayer.volume = 0;
+                    audioPlayer.pause();
+                    playBtn.textContent = '▶';
+                    clearInterval(fadeInterval);
+                }
+            }, stepTime);
+        }
 
         // Dismiss loading screen and start audio
         function dismissLoading() {
+            userHasInteracted = true;
             document.getElementById('loadingScreen').style.display = 'none';
-            audioPlayer.play();
-            playBtn.textContent = '⏸';
+            
+            // Load and play first track
+            loadTrack(0);
+            audioPlayer.volume = 0.5; // 50% volume
+            
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    playBtn.textContent = '⏸';
+                }).catch(err => {
+                    console.log('Initial play failed:', err);
+                    playBtn.textContent = '▶';
+                    alert('Tap the play button to start the music!');
+                });
+            }
         }
 
         // Go back button handler
         function goBack() {
             answerScreen.style.display = 'none';
             questionScreen.style.display = 'block';
-            audioPlayerDiv.style.display = 'block'; // Show audio player again
+            audioPlayerDiv.style.display = 'block';
             
-            // Stop the video by clearing the iframe
+            // Stop the video
             const mediaContainer = document.getElementById('mediaContainer');
             mediaContainer.innerHTML = '';
             
-            // Hide yes/no buttons and show the cycling button
+            // Hide yes/no buttons
             yesBtn.style.display = 'none';
             noBtn.style.display = 'none';
             
-            // Create or update the cycling button
+            // Create cycling button
             let loveBtn = document.getElementById('loveBtn');
             if (!loveBtn) {
                 loveBtn = document.createElement('button');
@@ -617,16 +681,13 @@
                 document.querySelector('.button-container').appendChild(loveBtn);
             }
             
-            // Set the button text to current message
             loveBtn.textContent = buttonMessages[messageIndex];
             loveBtn.style.display = 'inline-block';
-            
-            // Move to next message for next time (loop back to start after last message)
             messageIndex = (messageIndex + 1) % buttonMessages.length;
             
-            // Restore audio volume and continue playing
-            audioPlayer.volume = 0.05; // Reset to default volume
-            if (audioPlayer.paused) {
+            // Restore audio
+            audioPlayer.volume = 0.5;
+            if (audioPlayer.paused && userHasInteracted) {
                 audioPlayer.play();
                 playBtn.textContent = '⏸';
             }
@@ -636,35 +697,21 @@
         function goToVideo() {
             questionScreen.style.display = 'none';
             answerScreen.style.display = 'block';
-            audioPlayerDiv.style.display = 'none'; // Hide audio player
+            audioPlayerDiv.style.display = 'none';
             
-            // Fade out audio
-            const fadeOutDuration = 1000; // 1 second fade
-            const fadeSteps = 20;
-            const stepTime = fadeOutDuration / fadeSteps;
-            const volumeStep = audioPlayer.volume / fadeSteps;
+            fadeOutAudio();
             
-            const fadeInterval = setInterval(() => {
-                if (audioPlayer.volume > volumeStep) {
-                    audioPlayer.volume -= volumeStep;
-                } else {
-                    audioPlayer.volume = 0;
-                    audioPlayer.pause();
-                    playBtn.textContent = '▶'; // Reset play button
-                    clearInterval(fadeInterval);
-                }
-            }, stepTime);
-            
-            // Set the video
             const mediaContainer = document.getElementById('mediaContainer');
             const embedUrl = "https://player.vimeo.com/video/1164928202?badge=0&autopause=0&autoplay=1";
             mediaContainer.innerHTML = `<iframe width="100%" height="450" src="${embedUrl}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" style="border-radius: 15px;"></iframe>`;
             
-            // Create celebration hearts
             for (let i = 0; i < 20; i++) {
                 setTimeout(createHeart, i * 100);
             }
         }
+
+        // Initialize
+        loadTrack(0);
     </script>
 </body>
 </html>
