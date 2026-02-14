@@ -333,12 +333,22 @@
             margin-top: 5px;
         }
 
-        /* Volume control - visible on all devices */
+        /* Volume control - hidden on mobile, visible on desktop */
         .volume-control {
             display: flex;
             align-items: center;
             gap: 10px;
             flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .volume-control {
+                display: none;
+            }
+            
+            .audio-player-controls {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -346,7 +356,7 @@
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-text">Tap OK to start the music! 🎵</div>
+            <div class="loading-text">I couldn't figure out how to make the audio start automatically so.. :')</div>
             <button class="ok-btn" onclick="dismissLoading()">OK</button>
         </div>
     </div>
