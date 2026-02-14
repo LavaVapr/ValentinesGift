@@ -13,46 +13,48 @@
 
         html, body {
             width: 100%;
+            min-height: 100vh;
             height: 100%;
-            overflow: hidden;
-            position: fixed;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ffc3db 0%, #ffb3d9 50%, #ffa3d7 100%);
-            background-image: url('./background.png');
-            background-size: cover;
-            background-position: 5% center;
-            background-repeat: no-repeat;
+            /* Solid fallback color if image doesn't load */
+            background-color: #ffb3d9 !important;
+            /* Background image */
+            background-image: url('https://i.imgur.com/c1ERMrv.jpg?v=2') !important;
+            background-size: cover !important;
+            background-position: 5% center !important;
+            background-repeat: no-repeat !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 1rem;
+            min-height: 100vh !important;
         }
 
-        /* Mobile only - fade background between left and right */
+        /* Mobile only - slide background from left to right every 12 seconds */
         @media (max-width: 768px) {
             body {
-                animation: backgroundFade 14s infinite;
+                animation: backgroundSlide 12s ease-in-out infinite;
             }
         }
 
-        @keyframes backgroundFade {
+        @keyframes backgroundSlide {
             0% {
                 background-position: 5% center;
             }
-            14.3% { /* 2 seconds of 14 second cycle */
+            16.67% { /* 2 seconds out of 12 = 16.67% */
                 background-position: 85% center;
             }
-            50% {
+            83.33% { /* Stay at 85% for 8 seconds (10 seconds total at right) */
                 background-position: 85% center;
             }
-            64.3% { /* 2 seconds of 14 second cycle */
-                background-position: 5% center;
-            }
-            100% {
+            100% { /* 2 seconds to slide back to left */
                 background-position: 5% center;
             }
         }
@@ -179,11 +181,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #ffc3db 0%, #ffb3d9 50%, #ffa3d7 100%);
-            background-image: url('./background.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-color: #ffb3d9 !important;
+            background-image: url('https://i.imgur.com/c1ERMrv.jpg?v=2') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -476,7 +478,7 @@
         const durationDisplay = document.getElementById('duration');
         const audioPlayerDiv = document.getElementById('audioPlayer');
 
-        // Audio tracks - FIXED: Added ./ prefix for relative paths
+        // Audio tracks - using relative paths
         const tracks = [
             { name: "Krystal", url: "./Krystal.mp3" },
             { name: "When My Life Is Over", url: "./WhenMyLifeIsOver.mp3" },
@@ -493,6 +495,7 @@
 
         let currentTrack = 0;
         let userHasInteracted = false;
+        let savedVolume = 50; // Default 50% of max (which is 10% actual volume)
 
         // Load first track
         function loadTrack(index) {
@@ -517,7 +520,10 @@
         // Error handling
         audioPlayer.addEventListener('error', function(e) {
             console.error('Audio error:', audioPlayer.error);
-            alert('Could not load audio file: ' + tracks[currentTrack].name + '\nPlease check that the file exists.');
+            // Don't alert on first load, only if user tried to play
+            if (userHasInteracted) {
+                alert('Could not load audio file: ' + tracks[currentTrack].name);
+            }
         });
 
         // Toggle play/pause
@@ -530,7 +536,7 @@
                         playBtn.textContent = '⏸';
                     }).catch(err => {
                         console.log('Play failed:', err);
-                        alert('Could not play audio. Please check that the file exists.');
+                        alert('Could not play audio. The MP3 files may be missing or in wrong location.');
                     });
                 }
             } else {
@@ -600,9 +606,20 @@
             // Visual update only
         }
 
-        // Change volume - Note: This won't work on iOS
+        // Change volume - Note: This won't work on iOS, max is 10% of actual volume
         function changeVolume() {
-            audioPlayer.volume = volumeSlider.value / 100;
+            // Slider goes 0-100, but we map it to 0-10% actual volume
+            const volumePercent = volumeSlider.value / 100; // 0 to 1
+            const actualVolume = volumePercent * 0.10; // Scale to max 10% (0 to 0.10)
+            audioPlayer.volume = actualVolume;
+            
+            // Save to localStorage so it persists
+            try {
+                localStorage.setItem('valentineVolume', volumeSlider.value);
+                savedVolume = volumeSlider.value;
+            } catch (e) {
+                console.log('Could not save volume:', e);
+            }
         }
 
         // Format time
@@ -641,9 +658,21 @@
             userHasInteracted = true;
             document.getElementById('loadingScreen').style.display = 'none';
             
+            // Load saved volume from localStorage
+            try {
+                const saved = localStorage.getItem('valentineVolume');
+                if (saved !== null) {
+                    savedVolume = parseInt(saved);
+                    volumeSlider.value = savedVolume;
+                }
+            } catch (e) {
+                console.log('Could not load saved volume:', e);
+            }
+            
             // Load and play first track
             loadTrack(0);
-            audioPlayer.volume = 0.5; // 50% volume
+            // Set volume: slider value / 100 * 0.10 (to get max 10%)
+            audioPlayer.volume = (savedVolume / 100) * 0.10;
             
             const playPromise = audioPlayer.play();
             if (playPromise !== undefined) {
@@ -652,7 +681,6 @@
                 }).catch(err => {
                     console.log('Initial play failed:', err);
                     playBtn.textContent = '▶';
-                    alert('Tap the play button to start the music!');
                 });
             }
         }
@@ -687,8 +715,8 @@
             loveBtn.style.display = 'inline-block';
             messageIndex = (messageIndex + 1) % buttonMessages.length;
             
-            // Restore audio
-            audioPlayer.volume = 0.5;
+            // Restore audio with saved volume
+            audioPlayer.volume = (savedVolume / 100) * 0.10; // Restore to saved volume (max 10%)
             if (audioPlayer.paused && userHasInteracted) {
                 audioPlayer.play();
                 playBtn.textContent = '⏸';
