@@ -333,19 +333,12 @@
             margin-top: 5px;
         }
 
-        /* Hide volume control on iOS */
+        /* Volume control - visible on all devices */
         .volume-control {
             display: flex;
             align-items: center;
             gap: 10px;
             flex: 1;
-        }
-
-        @supports (-webkit-touch-callout: none) {
-            /* iOS specific - hide volume control */
-            .volume-control {
-                display: none;
-            }
         }
     </style>
 </head>
@@ -353,7 +346,7 @@
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-text">I couldn't figure out how to make the audio start automatically so.. :')</div>
+            <div class="loading-text">Tap OK to start the music! 🎵</div>
             <button class="ok-btn" onclick="dismissLoading()">OK</button>
         </div>
     </div>
@@ -651,24 +644,14 @@
         // Auto-play next track when current ends
         audioPlayer.addEventListener('ended', nextTrack);
 
-        // Fade out audio
+        // Fade out audio - improved for mobile
         function fadeOutAudio() {
-            const fadeOutDuration = 1000;
-            const fadeSteps = 20;
-            const stepTime = fadeOutDuration / fadeSteps;
-            const startVolume = audioPlayer.volume;
-            const volumeStep = startVolume / fadeSteps;
-            
-            const fadeInterval = setInterval(() => {
-                if (audioPlayer.volume > volumeStep) {
-                    audioPlayer.volume = Math.max(0, audioPlayer.volume - volumeStep);
-                } else {
-                    audioPlayer.volume = 0;
-                    audioPlayer.pause();
-                    playBtn.textContent = '▶';
-                    clearInterval(fadeInterval);
-                }
-            }, stepTime);
+            // Immediately pause and reset volume on mobile for reliability
+            if (audioPlayer && !audioPlayer.paused) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0; // Reset to beginning
+                playBtn.textContent = '▶';
+            }
         }
 
         // Dismiss loading screen and start audio
