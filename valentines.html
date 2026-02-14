@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Be My Valentine? 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url('https://i.imgur.com/c1ERMrv.jpg');
+            background-size: cover;
+            background-position: 5% center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        /* Mobile only - fade background between left and right */
+        @media (max-width: 768px) {
+            body {
+                animation: backgroundFade 14s infinite;
+            }
+        }
+
+        @keyframes backgroundFade {
+            0% {
+                background-position: 5% center;
+            }
+            14.3% { /* 2 seconds of 14 second cycle */
+                background-position: 85% center;
+            }
+            50% {
+                background-position: 85% center;
+            }
+            64.3% { /* 2 seconds of 14 second cycle */
+                background-position: 5% center;
+            }
+            100% {
+                background-position: 5% center;
+            }
+        }
+
+        /* Floating hearts animation */
+        .heart {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0;
+            animation: float 6s infinite ease-in-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            5% {
+                opacity: 0.6;
+            }
+            95% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem 1.5rem;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: #ff1654;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(255, 22, 84, 0.2);
+        }
+
+        .question-screen {
+            display: block;
+        }
+
+        .answer-screen {
+            display: none;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff6b9d, #ff1654);
+            color: white;
+            transform: scale(1);
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 22, 84, 0.4);
+        }
+
+        .btn-no {
+            background: linear-gradient(135deg, #9e9e9e, #757575);
+            color: white;
+            transform: scale(1);
+        }
+
+        .btn-no:hover {
+            background: linear-gradient(135deg, #757575, #616161);
+        }
+
+        .media-container {
+            margin: 1.5rem 0;
+            max-width: 100%;
+        }
+
+        .media-container img,
+        .media-container video {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .answer-text {
+            font-size: 1.1rem;
+            color: #333;
+            margin-top: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Loading Screen Styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://i.imgur.com/c1ERMrv.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+
+        .loading-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem 1.5rem;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .ok-btn {
+            background: linear-gradient(135deg, #ff6b9d, #ff1654);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .ok-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 22, 84, 0.4);
+        }
+
+        /* Audio Player Styles */
+        .audio-player {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.8rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .audio-player-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .audio-player button {
+            background: linear-gradient(135deg, #ff6b9d, #ff1654);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .audio-player button:hover {
+            transform: scale(1.1);
+        }
+
+        .audio-player button.play-btn {
+            width: 45px;
+            height: 45px;
+            font-size: 1rem;
+        }
+
+        .audio-player input[type="range"] {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .audio-track-info {
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .audio-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-text">I couldn't figure out how to make the audio start automatically so.. :')</div>
+            <button class="ok-btn" onclick="dismissLoading()">OK</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Question Screen -->
+        <div class="question-screen" id="questionScreen">
+            <h1>Will you be my Valentine? 💘</h1>
+            <div class="button-container">
+                <button class="btn btn-yes" id="yesBtn">Yes! 💕</button>
+                <button class="btn btn-no" id="noBtn">No</button>
+            </div>
+        </div>
+
+        <!-- Answer Screen (shown when Yes is clicked) -->
+        <div class="answer-screen" id="answerScreen">
+            <h1>watch this babe 😼</h1>
+            <div class="media-container" id="mediaContainer"></div>
+            <div class="answer-text" id="answerText">I told you, you don't have a choice</div>
+            
+            <button class="btn btn-no" onclick="goBack()" style="margin-top: 2rem;">← Go Back</button>
+        </div>
+    </div>
+
+    <!-- Audio Player - Only visible on question screen -->
+    <div class="audio-player" id="audioPlayer">
+        <div class="audio-track-info" id="trackInfo">Track 1</div>
+        <div class="audio-player-controls">
+            <button onclick="prevTrack()">⏮</button>
+            <button class="play-btn" onclick="togglePlay()" id="playBtn">▶</button>
+            <button onclick="nextTrack()">⏭</button>
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <span style="font-size: 1rem;">🔊</span>
+                <input type="range" min="0" max="10" value="5" id="volume" oninput="changeVolume()" style="flex: 1;">
+            </div>
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="range" min="0" max="100" value="0" id="progress" oninput="updateProgress()" onmousedown="startDragging()" onmouseup="seekTo()" ontouchstart="startDragging()" ontouchend="seekTo()" style="width: 100%;">
+        </div>
+        <div class="audio-time">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+    </div>
+
+    <audio id="audioElement"></audio>
+
+    <script>
+        // ====== CUSTOMIZE YOUR "NO" BUTTON RESPONSES HERE ======
+        // Add as many responses as you want! The button will shrink and change text each time.
+        const noResponses = [
+            "Are you sure?",
+            "Really?",
+            "Try again",
+            "mmm no",
+            "WHYYY",
+            "STOP IT!",
+            "DONT PRESS!",
+            "PLEASEE",
+            "You dont get a choice",
+            "meow"
+        ];
+        // ======================================================
+
+        let noClickCount = 0;
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const questionScreen = document.getElementById('questionScreen');
+        const answerScreen = document.getElementById('answerScreen');
+        
+        // Button messages that cycle
+        const buttonMessages = ["I love you 💕", "Hehehe", "You're cute", "Hey gorgeous"];
+        let messageIndex = 0;
+
+        // Create floating hearts
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            heart.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 6000);
+        }
+
+        // Create hearts periodically
+        setInterval(createHeart, 800);
+
+        // No button click handler
+        noBtn.addEventListener('click', function() {
+            if (noClickCount < noResponses.length) {
+                // Change text
+                noBtn.textContent = noResponses[noClickCount];
+                
+                // Shrink no button
+                const newNoScale = 1 - (noClickCount + 1) * 0.1;
+                noBtn.style.transform = `scale(${Math.max(newNoScale, 0.3)})`;
+                
+                // Grow yes button
+                const newYesScale = 1 + (noClickCount + 1) * 0.15;
+                yesBtn.style.transform = `scale(${newYesScale})`;
+                
+                noClickCount++;
+                
+                // If this was the last response, hide the No button completely
+                if (noClickCount >= noResponses.length) {
+                    noBtn.style.display = 'none';
+                }
+            }
+        });
+
+        // Yes button click handler
+        yesBtn.addEventListener('click', function() {
+            questionScreen.style.display = 'none';
+            answerScreen.style.display = 'block';
+            audioPlayerDiv.style.display = 'none'; // Hide audio player
+            
+            // Fade out audio
+            const fadeOutDuration = 1000; // 1 second fade
+            const fadeSteps = 20;
+            const stepTime = fadeOutDuration / fadeSteps;
+            const volumeStep = audioPlayer.volume / fadeSteps;
+            
+            const fadeInterval = setInterval(() => {
+                if (audioPlayer.volume > volumeStep) {
+                    audioPlayer.volume -= volumeStep;
+                } else {
+                    audioPlayer.volume = 0;
+                    audioPlayer.pause();
+                    playBtn.textContent = '▶'; // Reset play button
+                    clearInterval(fadeInterval);
+                }
+            }, stepTime);
+            
+            // Set the video
+            const mediaContainer = document.getElementById('mediaContainer');
+            const embedUrl = "https://player.vimeo.com/video/1164928202?badge=0&autopause=0&autoplay=1";
+            mediaContainer.innerHTML = `<iframe width="100%" height="450" src="${embedUrl}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" style="border-radius: 15px;"></iframe>`;
+            
+            // Create celebration hearts
+            for (let i = 0; i < 20; i++) {
+                setTimeout(createHeart, i * 100);
+            }
+        });
+
+        // Audio Player Functionality
+        const audioPlayer = document.getElementById('audioElement');
+        const playBtn = document.getElementById('playBtn');
+        const progress = document.getElementById('progress');
+        const volumeSlider = document.getElementById('volume');
+        const trackInfo = document.getElementById('trackInfo');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const durationDisplay = document.getElementById('duration');
+        const audioPlayerDiv = document.getElementById('audioPlayer');
+
+        // Audio tracks from uploaded files
+        const tracks = [
+            { name: "Krystal", url: "Krystal.mp3" },
+            { name: "When My Life Is Over", url: "WhenMyLifeIsOver.mp3" },
+            { name: "The Marías - Nobody New", url: "TheMariasNobodyNew.mp3" },
+            { name: "Everyone Adores You (at least I do)", url: "EveryoneAdoresYouatleastIdo.mp3" },
+            { name: "Matt Maltese - As the World Caves In", url: "MattMalteseAstheWorldCavesInOfficial.mp3" },
+            { name: "The Ronettes - Be My Baby", url: "TheRonettesBeMyBabyOfficialAudio.mp3" },
+            { name: "What More Can I Say", url: "WhatMoreCanISay.mp3" },
+            { name: "The Marías - No One Noticed", url: "TheMariasNoOneNoticed.mp3" },
+            { name: "Last Night on Earth - Green Day", url: "SubThaiLastNightonEarthGreenDay.mp3" },
+            { name: "Come Back! Buddha REMASTERED", url: "ComeBackBuddhaREMASTERED.mp3" },
+            { name: "She & Him - I Thought I Saw Your Face Today", url: "SheAndHimIThoughtISawYourFaceToday.mp3" }
+        ];
+
+        let currentTrack = 0;
+
+        // Load first track
+        function loadTrack(index) {
+            console.log('Loading track:', tracks[index].name, 'from:', tracks[index].url);
+            const wasPlaying = !audioPlayer.paused;
+            audioPlayer.src = tracks[index].url;
+            audioPlayer.load(); // Important: force reload the audio
+            trackInfo.textContent = tracks[index].name;
+            currentTrack = index;
+            
+            // If it was playing before, continue playing after load
+            if (wasPlaying) {
+                audioPlayer.play().catch(err => console.log('Play error:', err));
+            }
+        }
+
+        // Add error event listener
+        audioPlayer.addEventListener('error', function(e) {
+            console.error('Audio error:', e);
+            console.error('Error code:', audioPlayer.error?.code);
+            console.error('Error message:', audioPlayer.error?.message);
+            console.error('Current src:', audioPlayer.src);
+        });
+
+        // Toggle play/pause
+        function togglePlay() {
+            if (audioPlayer.paused) {
+                audioPlayer.play().catch(err => console.log('Play error:', err));
+                playBtn.textContent = '⏸';
+            } else {
+                audioPlayer.pause();
+                playBtn.textContent = '▶';
+            }
+        }
+
+        // Next track
+        function nextTrack() {
+            currentTrack = (currentTrack + 1) % tracks.length;
+            loadTrack(currentTrack);
+            audioPlayer.play().catch(err => console.log('Play error:', err));
+            playBtn.textContent = '⏸';
+        }
+
+        // Previous track
+        function prevTrack() {
+            currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
+            loadTrack(currentTrack);
+            audioPlayer.play().catch(err => console.log('Play error:', err));
+            playBtn.textContent = '⏸';
+        }
+
+        // Update progress bar
+        audioPlayer.addEventListener('timeupdate', function() {
+            // Only update progress bar if user is not dragging
+            if (!isDragging) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progress.value = percent || 0;
+            }
+            
+            // Update time displays
+            currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            durationDisplay.textContent = formatTime(audioPlayer.duration);
+        });
+
+        // Seek to position
+        let isDragging = false;
+        
+        function startDragging() {
+            isDragging = true;
+        }
+        
+        function updateProgress() {
+            // Only update visually while dragging, don't change audio position
+            if (isDragging) {
+                // Just let the slider move, don't seek yet
+            }
+        }
+        
+        function seekTo() {
+            // Only actually seek when user releases the slider
+            isDragging = false;
+            const time = (progress.value / 100) * audioPlayer.duration;
+            audioPlayer.currentTime = time;
+        }
+
+        // Change volume
+        function changeVolume() {
+            audioPlayer.volume = volumeSlider.value / 100; // Divide by 100 so max of 10 = 0.1 (10%)
+            console.log('Volume set to:', audioPlayer.volume);
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Auto-play next track when current ends
+        audioPlayer.addEventListener('ended', nextTrack);
+
+        // Load first track on page load
+        loadTrack(0);
+        audioPlayer.volume = 0.05;
+
+        // Dismiss loading screen and start audio
+        function dismissLoading() {
+            document.getElementById('loadingScreen').style.display = 'none';
+            audioPlayer.play();
+            playBtn.textContent = '⏸';
+        }
+
+        // Go back button handler
+        function goBack() {
+            answerScreen.style.display = 'none';
+            questionScreen.style.display = 'block';
+            audioPlayerDiv.style.display = 'block'; // Show audio player again
+            
+            // Stop the video by clearing the iframe
+            const mediaContainer = document.getElementById('mediaContainer');
+            mediaContainer.innerHTML = '';
+            
+            // Hide yes/no buttons and show the cycling button
+            yesBtn.style.display = 'none';
+            noBtn.style.display = 'none';
+            
+            // Create or update the cycling button
+            let loveBtn = document.getElementById('loveBtn');
+            if (!loveBtn) {
+                loveBtn = document.createElement('button');
+                loveBtn.id = 'loveBtn';
+                loveBtn.className = 'btn btn-yes';
+                loveBtn.onclick = function() {
+                    goToVideo();
+                };
+                document.querySelector('.button-container').appendChild(loveBtn);
+            }
+            
+            // Set the button text to current message
+            loveBtn.textContent = buttonMessages[messageIndex];
+            loveBtn.style.display = 'inline-block';
+            
+            // Move to next message for next time (loop back to start after last message)
+            messageIndex = (messageIndex + 1) % buttonMessages.length;
+            
+            // Restore audio volume and continue playing
+            audioPlayer.volume = 0.05; // Reset to default volume
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playBtn.textContent = '⏸';
+            }
+        }
+        
+        // Function to go to video page
+        function goToVideo() {
+            questionScreen.style.display = 'none';
+            answerScreen.style.display = 'block';
+            audioPlayerDiv.style.display = 'none'; // Hide audio player
+            
+            // Fade out audio
+            const fadeOutDuration = 1000; // 1 second fade
+            const fadeSteps = 20;
+            const stepTime = fadeOutDuration / fadeSteps;
+            const volumeStep = audioPlayer.volume / fadeSteps;
+            
+            const fadeInterval = setInterval(() => {
+                if (audioPlayer.volume > volumeStep) {
+                    audioPlayer.volume -= volumeStep;
+                } else {
+                    audioPlayer.volume = 0;
+                    audioPlayer.pause();
+                    playBtn.textContent = '▶'; // Reset play button
+                    clearInterval(fadeInterval);
+                }
+            }, stepTime);
+            
+            // Set the video
+            const mediaContainer = document.getElementById('mediaContainer');
+            const embedUrl = "https://player.vimeo.com/video/1164928202?badge=0&autopause=0&autoplay=1";
+            mediaContainer.innerHTML = `<iframe width="100%" height="450" src="${embedUrl}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" style="border-radius: 15px;"></iframe>`;
+            
+            // Create celebration hearts
+            for (let i = 0; i < 20; i++) {
+                setTimeout(createHeart, i * 100);
+            }
+        }
+    </script>
+</body>
+</html>
