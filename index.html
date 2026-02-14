@@ -49,10 +49,10 @@
             z-index: -1;
         }
 
-        /* Mobile only - slide background from left to right every 12 seconds */
+        /* Mobile only - slide background from left to right every 24 seconds total */
         @media (max-width: 768px) {
             body::before {
-                animation: backgroundSlide 12s ease-in-out infinite;
+                animation: backgroundSlide 24s ease-in-out infinite;
             }
         }
 
@@ -60,13 +60,19 @@
             0% {
                 background-position: 5% center;
             }
-            16.67% { /* 2 seconds out of 12 = 16.67% */
+            8.33% { /* 2 seconds to slide right (2/24 = 8.33%) */
                 background-position: 85% center;
             }
-            83.33% { /* Stay at 85% for 8 seconds (10 seconds total at right) */
+            41.67% { /* Stay at right for 8 seconds (10/24 = 41.67%) */
                 background-position: 85% center;
             }
-            100% { /* 2 seconds to slide back to left */
+            50% { /* 2 seconds to slide back left (12/24 = 50%) */
+                background-position: 5% center;
+            }
+            91.67% { /* Stay at left for 8 seconds (22/24 = 91.67%) */
+                background-position: 5% center;
+            }
+            100% { /* Ready to start next cycle */
                 background-position: 5% center;
             }
         }
@@ -347,7 +353,7 @@
     <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-content">
-            <div class="loading-text">Tap OK to start the music! 🎵</div>
+            <div class="loading-text">I couldn't figure out how to make the audio start automatically so.. :')</div>
             <button class="ok-btn" onclick="dismissLoading()">OK</button>
         </div>
     </div>
